@@ -1,0 +1,29 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        run: docker --version
+
+      - name: Build and Run Docker Compose
+        run: docker-compose up --build -d
+
+      - name: Test Node.js Service
+        run: curl --fail http://localhost:8080/
+
+      - name: Test Python Service
+        run: curl --fail http://localhost:5000/
+
+      - name: Stop Containers
+        run: docker-compose down
