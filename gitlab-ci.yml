@@ -1,0 +1,41 @@
+stages:
+  - build
+  - test
+  - cleanup
+
+variables:
+  DOCKER_DRIVER: overlay2  # Avoids some permission issues
+
+before_script:
+  - docker --version
+  - apt-get update && apt-get install -y docker-compose
+  - docker-compose --version  # Verify installation
+
+build_and_run:
+  stage: build
+  script:
+    - docker-compose up --build -d
+  only:
+    - main
+
+wait_for_services:
+  stage: test
+  script:
+    - echo "Waiting for services to be ready..."
+    - sleep 30  # Adjust as needed
+    - docker ps  # Show running containers
+
+test_node_service:
+  stage: test
+  script:
+    - for i in {1..5}; do curl --fail http://localhost:8080 && break || sleep 10; done
+
+test_python_service:
+  stage: test
+  script:
+    - for i in {1..5}; do curl --fail http://localhost:5000 && break || sleep 10; done
+
+cleanup:
+  stage: cleanup
+  script:
+    - docker-compose down
