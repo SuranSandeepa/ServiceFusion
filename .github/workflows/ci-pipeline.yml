@@ -18,15 +18,28 @@ jobs:
           docker --version
           sudo apt-get update
           sudo apt-get install -y docker-compose
+          docker-compose --version  # Ensure Docker Compose is installed
 
       - name: Build and Run Docker Compose
         run: docker-compose up --build -d
 
+      - name: Wait for services to be ready
+        run: sleep 30  # Adjust if your services need more or less time to start
+
+      - name: Check running Docker containers
+        run: docker ps  # List running containers
+
       - name: Test Node.js Service
-        run: curl --fail http://localhost:8080/
+        run: |
+          for i in {1..5}; do
+            curl --fail http://localhost:8080 && break || sleep 10
+          done
 
       - name: Test Python Service
-        run: curl --fail http://localhost:5000/
+        run: |
+          for i in {1..5}; do
+            curl --fail http://localhost:5000 && break || sleep 10
+          done
 
       - name: Stop Containers
         run: docker-compose down
